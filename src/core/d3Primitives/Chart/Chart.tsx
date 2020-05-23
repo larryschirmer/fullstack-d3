@@ -15,13 +15,23 @@ type Props = {
 };
 
 const Chart = forwardRef<Ref, Props>(({ dimensions, children }, ref) => {
+  const {
+    height,
+    width,
+    margin: { left: leftMargin, top: topMargin },
+  } = dimensions;
+
   useEffect(() => {
     if (ref !== null && typeof ref !== 'function') {
-      select(ref.current)
-        .attr('width', dimensions.width)
-        .attr('height', dimensions.height);
+      const svg = select(ref.current)
+        .attr('width', width)
+        .attr('height', height);
+      svg
+        .append('g')
+        .attr('id', 'bounds')
+        .style('transform', `translate(${leftMargin}px, ${topMargin}px)`);
     }
-  }, [dimensions.height, dimensions.width, ref]);
+  }, [height, width, ref, leftMargin, topMargin]);
 
   return (
     <ChartContext.Provider value={dimensions}>
