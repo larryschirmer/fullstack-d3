@@ -4,7 +4,11 @@ import { select } from 'd3-selection';
 import { useChartDimensions } from 'core/d3Helpers';
 import { defaultDimension } from 'core/d3Helpers/processBounds';
 
-const Bounds: FC = ({ children }) => {
+type Props = {
+  customId?: string;
+};
+
+const Bounds: FC<Props> = ({ children, customId }) => {
   const { dimensions = defaultDimension } = useChartDimensions();
   const groupRef = createRef<SVGSVGElement>();
 
@@ -19,11 +23,14 @@ const Bounds: FC = ({ children }) => {
       typeof groupRef !== 'function' &&
       groupRef.current !== null
     ) {
-      select(groupRef.current)
-        .attr('id', 'bounds')
-        .style('transform', `translate(${leftMargin}px, ${topMargin}px)`);
+      const svg = select(groupRef.current).style(
+        'transform',
+        `translate(${leftMargin}px, ${topMargin}px)`,
+      );
+
+      if (customId) svg.attr('id', customId);
     }
-  }, [groupRef, leftMargin, topMargin]);
+  }, [customId, groupRef, leftMargin, topMargin]);
 
   return <g ref={groupRef}>{children}</g>;
 };
