@@ -1,11 +1,12 @@
 import React, { createContext, useEffect, forwardRef, ReactNode } from 'react';
 import { select } from 'd3-selection';
 
-import { Dimension, Bounds } from '../../d3Helpers/processBounds';
+import { Dimension, Bounds } from 'core/d3Helpers/processBounds';
+import { TChartDim } from 'core/d3Helpers/useChartDimensions';
 
 import { Wrapper } from './Chart.styles';
 
-export const ChartContext = createContext({});
+export const ChartContext = createContext<TChartDim>({});
 
 type Ref = SVGSVGElement;
 
@@ -22,19 +23,15 @@ const Chart = forwardRef<Ref, Props>(({ dimensions, children }, ref) => {
   } = dimensions;
 
   useEffect(() => {
-    if (ref !== null && typeof ref !== 'function') {
-      const svg = select(ref.current)
+    if (ref !== null && ref !== undefined && typeof ref !== 'function' && ref.current !== null) {
+      select(ref.current)
         .attr('width', width)
         .attr('height', height);
-      svg
-        .append('g')
-        .attr('id', 'bounds')
-        .style('transform', `translate(${leftMargin}px, ${topMargin}px)`);
     }
-  }, [height, width, ref, leftMargin, topMargin]);
+  }, [height, width, leftMargin, topMargin, ref]);
 
   return (
-    <ChartContext.Provider value={dimensions}>
+    <ChartContext.Provider value={{ dimensions, ref }}>
       <Wrapper {...{ ref }}>{children}</Wrapper>
     </ChartContext.Provider>
   );
