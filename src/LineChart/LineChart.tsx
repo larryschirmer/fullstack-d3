@@ -3,7 +3,7 @@ import { line } from 'd3-shape';
 
 import { processBounds, makeLinearScale, makeTimeScale } from 'core/d3Helpers';
 import { yAccessor, xAccessor } from './LineChart.helpers';
-import { Chart, Bounds, Line, Rect } from 'core/d3Primitives';
+import { Chart, Bounds, Line, Axis } from 'core/d3Primitives';
 
 import dataset from './hourlyWeather.json';
 
@@ -53,13 +53,8 @@ const LineChart = () => {
       <Chart {...{ dimensions }} ref={svgRef}>
         <Bounds>
           <Line {...{ plot }} strokeColor="#af9358" strokeWidth="2" />
-          <Rect
-            width={dimensions.boundedWidth}
-            height={dimensions.boundedHeight - yScale(32)}
-            x={0}
-            y={yScale(32)}
-            color="#e0f3f390"
-          />
+          <Axis axisType="yAxis" scale={yScale} />
+          <Axis axisType="xAxis" scale={xScale} />
         </Bounds>
       </Chart>
     </Wrapper>
