@@ -18,11 +18,16 @@ const makeLinearScale = <KeyName extends string>(
   dataset: Datapoint<KeyName>[],
   accessor: Accessor<KeyName>,
   range: Range,
+  nice: boolean = false,
 ) => {
   const [min = 0, max = 0] = extent(dataset, accessor);
-  return scaleLinear()
+  const scale = scaleLinear()
     .domain([min, max])
     .range([range.lowest, range.highest]);
+
+  if (nice) scale.nice();
+
+  return scale;
 };
 
 export default makeLinearScale;
