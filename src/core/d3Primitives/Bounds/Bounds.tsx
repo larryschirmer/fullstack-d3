@@ -16,6 +16,7 @@ const Bounds: FC<Props> = ({ children, customId }) => {
     margin: { left: leftMargin, top: topMargin },
   } = dimensions;
 
+  // place bounded region on svg
   useEffect(() => {
     if (
       groupRef !== null &&

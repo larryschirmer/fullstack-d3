@@ -42,7 +42,7 @@ const ScatterPlot = () => {
     return makeColorScale<'clouds'>(dataset, colorAccessor, range)
   },[])
 
-
+  // create circles from dataset
   useEffect(() => {
     const group = select(groupRef.current);
     group

@@ -21,6 +21,7 @@ const Axis: FC<Props> = ({ axisType, scale, label, ticks }) => {
     xAxis: axisBottom,
   };
 
+  // add axis, ticks, and labels to component group
   useEffect(() => {
     if (
       groupRef !== null &&

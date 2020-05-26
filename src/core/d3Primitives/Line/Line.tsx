@@ -10,6 +10,7 @@ type Props = {
 const Line: FC<Props> = ({ plot, strokeColor, strokeWidth }) => {
   const pathRef = createRef<SVGPathElement>();
 
+  // plot data and assign line properties
   useEffect(() => {
     if (
       pathRef !== null &&

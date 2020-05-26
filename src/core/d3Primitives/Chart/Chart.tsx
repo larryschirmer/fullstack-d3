@@ -22,6 +22,7 @@ const Chart = forwardRef<Ref, Props>(({ dimensions, children }, ref) => {
     margin: { left: leftMargin, top: topMargin },
   } = dimensions;
 
+  // set width and height of svg canvas
   useEffect(() => {
     if (ref !== null && ref !== undefined && typeof ref !== 'function' && ref.current !== null) {
       select(ref.current)

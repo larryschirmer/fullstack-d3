@@ -12,6 +12,7 @@ type Props = {
 const Rect: FC<Props> = ({ width, height, x, y, color = '#000', children }) => {
   const rectRef = createRef<SVGRectElement>();
 
+  // set rect properties
   useEffect(() => {
     if (
       rectRef !== null &&
