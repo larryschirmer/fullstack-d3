@@ -4,7 +4,7 @@ import { extent } from 'd3-array';
 type Datapoint<KeyName extends string> = {
   [index in KeyName]: number;
 } & {
-  [index: string]: number;
+  [index: string]: any;
 };
 
 type Accessor<KeyName extends string> = (datapoint: Datapoint<KeyName>) => number;
