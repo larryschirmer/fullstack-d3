@@ -3,11 +3,14 @@ import { select } from 'd3-selection';
 
 type Props = {
   plot: string;
-  strokeColor: string;
-  strokeWidth: string;
+  strokeColor?: string;
+  strokeWidth?: string;
+  dashed?: string;
+  className?: string;
 };
 
-const Line: FC<Props> = ({ plot, strokeColor, strokeWidth }) => {
+const Line: FC<Props> = (props) => {
+  const { plot, strokeColor = 'black', strokeWidth = '1', dashed, className } = props;
   const pathRef = createRef<SVGPathElement>();
 
   // plot data and assign line properties
@@ -18,15 +21,17 @@ const Line: FC<Props> = ({ plot, strokeColor, strokeWidth }) => {
       typeof pathRef !== 'function' &&
       pathRef.current !== null
     ) {
-      select(pathRef.current)
+      const line = select(pathRef.current)
         .attr('d', plot)
         .attr('fill', 'none')
         .attr('stroke', strokeColor)
         .attr('stroke-width', strokeWidth);
-    }
-  }, [pathRef, plot, strokeColor, strokeWidth]);
 
-  return <path ref={pathRef} />;
+      if (dashed) line.attr('stroke-dasharray', dashed);
+    }
+  }, [dashed, pathRef, plot, strokeColor, strokeWidth]);
+
+  return <path {...{ className }} ref={pathRef} />;
 };
 
 export default Line;

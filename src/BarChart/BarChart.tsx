@@ -1,11 +1,11 @@
-import React, { createRef, useMemo, useEffect } from 'react';
-import { histogram } from 'd3-array';
+import React, { createRef, useMemo, useEffect, useState } from 'react';
+import { histogram, mean } from 'd3-array';
 import { scaleLinear } from 'd3-scale';
 import { max } from 'd3-array';
 import { select } from 'd3-selection';
 
-import { processBounds, makeLinearScale } from 'core/d3Helpers';
-import { Chart, Bounds } from 'core/d3Primitives';
+import { processBounds, makeLinearScale, generateLineSegment } from 'core/d3Helpers';
+import { Chart, Bounds, Line } from 'core/d3Primitives';
 import { metricAccessor, yAccessor } from './BarChart.helpers';
 
 import dataset from './hourlyWeather.json';
@@ -21,6 +21,7 @@ export type Dataset = {
 const BarChart = () => {
   const svgRef = createRef<SVGSVGElement>();
   const groupRef = createRef<SVGSVGElement>();
+  const [datasetMean, setDatasetMean] = useState(0);
 
   const dimensions = useMemo(() => {
     const width = 600;
@@ -92,13 +93,30 @@ const BarChart = () => {
       .attr('fill', 'darkgrey')
       .style('font-size', '12px')
       .style('font-family', 'sans-serif');
+
+    setDatasetMean(mean(dataset, metricAccessor) || 0);
   }, [bins, dimensions.boundedHeight, groupRef, xScale, yScale]);
+
+  const meanLine = useMemo(() => {
+    const [start, end] = [
+      { x: xScale(datasetMean), y: -15 },
+      { x: xScale(datasetMean), y: dimensions.boundedHeight },
+    ];
+    return generateLineSegment(start, end);
+  }, [datasetMean, dimensions.boundedHeight, xScale]);
 
   return (
     <Wrapper>
       <Chart {...{ dimensions }} ref={svgRef}>
         <Bounds>
           <g className="bar-chart" ref={groupRef} />
+          <Line
+            className="mean-humidity"
+            plot={meanLine}
+            strokeColor="maroon"
+            strokeWidth="1"
+            dashed="2px 4px"
+          />
         </Bounds>
       </Chart>
     </Wrapper>
