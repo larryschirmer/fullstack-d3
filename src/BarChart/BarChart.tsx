@@ -63,6 +63,7 @@ const BarChart = () => {
   // create bars from dataset
   useEffect(() => {
     const barPadding = 1;
+    const labelPadding = 5;
     const group = select(groupRef.current);
 
     const binGroups = group
@@ -71,13 +72,26 @@ const BarChart = () => {
       .enter()
       .append('g');
 
-    const BarRects = binGroups
+    // Bar Rects
+    binGroups
       .append('rect')
       .attr('x', (d) => xScale(d.x0 || 0) + barPadding / 2)
       .attr('y', (d) => yScale(yAccessor(d)))
       .attr('width', (d) => max([0, xScale(d.x1 || 0) - xScale(d.x0 || 0) - barPadding]) || 0)
       .attr('height', (d) => dimensions.boundedHeight - yScale(yAccessor(d)))
       .attr('fill', 'cornflowerblue');
+
+    // Bar Text
+    binGroups
+      .filter((d) => yAccessor(d) !== 0)
+      .append('text')
+      .attr('x', (d) => xScale(d.x0 || 0) + (xScale(d.x1 || 0) - xScale(d.x0 || 0)) / 2)
+      .attr('y', (d) => yScale(yAccessor(d)) - labelPadding)
+      .text(yAccessor)
+      .style('text-anchor', 'middle')
+      .attr('fill', 'darkgrey')
+      .style('font-size', '12px')
+      .style('font-family', 'sans-serif');
   }, [bins, dimensions.boundedHeight, groupRef, xScale, yScale]);
 
   return (
