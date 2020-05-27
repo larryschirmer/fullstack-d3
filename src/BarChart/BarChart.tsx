@@ -5,7 +5,7 @@ import { max } from 'd3-array';
 import { select } from 'd3-selection';
 
 import { processBounds, makeLinearScale, generateLineSegment } from 'core/d3Helpers';
-import { Chart, Bounds, Line } from 'core/d3Primitives';
+import { Chart, Bounds, Line, Text } from 'core/d3Primitives';
 import { metricAccessor, yAccessor } from './BarChart.helpers';
 
 import dataset from './hourlyWeather.json';
@@ -117,6 +117,9 @@ const BarChart = () => {
             strokeWidth="1"
             dashed="2px 4px"
           />
+          <Text className="mean-humidity-label" x={xScale(datasetMean)} y={-20}>
+            mean
+          </Text>
         </Bounds>
       </Chart>
     </Wrapper>
