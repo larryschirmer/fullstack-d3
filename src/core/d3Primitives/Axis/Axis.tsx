@@ -60,6 +60,11 @@ const Axis: FC<Props> = ({ axisType, scale, label, ticks }) => {
           .style('transform', 'rotate(-90deg)')
           .style('text-anchor', 'middle');
       }
+
+      axis
+        .selectAll('text')
+        .attr('role', 'presentation')
+        .attr('aria-hidden', 'true');
     }
   }, [axisType, axisTypes, dimensions, groupRef, label, scale, ticks]);
 

@@ -23,7 +23,12 @@ const WeatherHistograms = () => {
     <div>
       <div>
         <h1>Wind speed</h1>
-        <BarChart<'wind_speed'> showMean datasetKey="wind_speed" {...{ dataset, dimensions }} />
+        <BarChart<'wind_speed'>
+          {...{ dataset, dimensions }}
+          showMean
+          datasetKey="wind_speed"
+          title="Histogram looking at the distribution of wind speeds over a 48 hour period"
+        />
       </div>
       <div>
         <h1>Dew Point</h1>

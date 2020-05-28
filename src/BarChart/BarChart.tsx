@@ -23,11 +23,12 @@ type Props<DatasetKey extends string> = {
   datasetKey: DatasetKey;
   dataset: DatasetPoint<DatasetKey>[];
   dimensions: Dimension & TBounds;
+  title?: string;
   showMean?: boolean;
 };
 
 const BarChart = <DatasetKey extends string>(props: Props<DatasetKey>) => {
-  const { datasetKey, dataset, dimensions, showMean = false } = props;
+  const { datasetKey, dataset, dimensions, title, showMean = false } = props;
 
   const svgRef = createRef<SVGSVGElement>();
   const groupRef = createRef<SVGSVGElement>();
@@ -64,13 +65,19 @@ const BarChart = <DatasetKey extends string>(props: Props<DatasetKey>) => {
   useEffect(() => {
     const barPadding = 1;
     const labelPadding = 5;
-    const group = select(groupRef.current);
+    const group = select(groupRef.current)
+      .attr('tabindex', '0')
+      .attr('role', 'list')
+      .attr('aria-label', 'histogram bars');
 
     const binGroups = group
       .selectAll('g')
       .data(bins)
       .enter()
-      .append('g');
+      .append('g')
+      .attr('tabindex', '0')
+      .attr('role', 'listitem')
+      .attr('aria-label', yAccessor);
 
     // Bar Rects
     binGroups
@@ -107,6 +114,7 @@ const BarChart = <DatasetKey extends string>(props: Props<DatasetKey>) => {
   return (
     <Wrapper>
       <Chart {...{ dimensions }} ref={svgRef}>
+        <title>{title}</title>
         <Bounds>
           <g className="bar-chart" ref={groupRef} />
           {showMean && (

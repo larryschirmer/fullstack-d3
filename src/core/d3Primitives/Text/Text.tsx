@@ -10,7 +10,13 @@ type Props = {
 
 const Text: FC<Props> = ({ x, y, color = '#000', fontSize = '12px', className, children }) => {
   return (
-    <text {...{ x, y, className }} fill={color} style={{ fontSize }}>
+    <text
+      {...{ x, y, className }}
+      fill={color}
+      style={{ fontSize }}
+      role="presentation"
+      aria-hidden="true"
+    >
       {children}
     </text>
   );

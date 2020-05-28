@@ -33,7 +33,9 @@ const Chart = forwardRef<Ref, Props>(({ dimensions, children }, ref) => {
 
   return (
     <ChartContext.Provider value={{ dimensions, ref }}>
-      <Wrapper {...{ ref }}>{children}</Wrapper>
+      <Wrapper {...{ ref }} role="figure" tabIndex={0}>
+        {children}
+      </Wrapper>
     </ChartContext.Provider>
   );
 });
