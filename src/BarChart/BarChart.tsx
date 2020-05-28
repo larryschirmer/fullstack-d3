@@ -4,53 +4,52 @@ import { scaleLinear } from 'd3-scale';
 import { max } from 'd3-array';
 import { select } from 'd3-selection';
 
-import { processBounds, makeLinearScale, generateLineSegment } from 'core/d3Helpers';
+import { makeLinearScale, generateLineSegment, makeAccessor } from 'core/d3Helpers';
 import { Chart, Bounds, Line, Text, Axis } from 'core/d3Primitives';
-import { metricAccessor, yAccessor } from './BarChart.helpers';
-
-import dataset from './hourlyWeather.json';
+import { Dimension, Bounds as TBounds } from 'core/d3Helpers/processBounds';
 
 import { Wrapper } from './BarChart.styles';
 
-export type Dataset = {
-  humidity: number;
+// a dataset is an array of objects of any shape
+// the only requirement is that the key being
+// accessed is a property on each object in the array
+type DatasetPoint<DatasetKey extends string> = {
+  [key in DatasetKey]: number;
 } & {
   [index: string]: any;
 };
 
-const BarChart = () => {
+type Props<DatasetKey extends string> = {
+  datasetKey: DatasetKey;
+  dataset: DatasetPoint<DatasetKey>[];
+  dimensions: Dimension & TBounds;
+  showMean?: boolean;
+};
+
+const BarChart = <DatasetKey extends string>(props: Props<DatasetKey>) => {
+  const { datasetKey, dataset, dimensions, showMean = false } = props;
+
   const svgRef = createRef<SVGSVGElement>();
   const groupRef = createRef<SVGSVGElement>();
   const [datasetMean, setDatasetMean] = useState(0);
 
-  const dimensions = useMemo(() => {
-    const width = 600;
-    return processBounds({
-      width: width,
-      height: width * 0.6,
-      margin: {
-        top: 30,
-        right: 10,
-        bottom: 50,
-        left: 50,
-      },
-    });
-  }, []);
+  const metricAccessor = makeAccessor<DatasetKey, number>(datasetKey);
+  const yAccessor = (d: any[]) => d.length;
 
   const xScale = useMemo(() => {
     const range = { lowest: 0, highest: dimensions.boundedWidth };
-    return makeLinearScale<'humidity'>(dataset, metricAccessor, range, true);
-  }, [dimensions.boundedWidth]);
+    return makeLinearScale<DatasetKey>(dataset, metricAccessor, range, true);
+  }, [dataset, dimensions.boundedWidth, metricAccessor]);
 
   const bins = useMemo(() => {
     const [min = 0, max = 0] = xScale.domain();
-    const binGenerator = histogram<Dataset, number>()
+    const binGenerator = histogram<DatasetPoint<DatasetKey>, number>()
       .domain([min, max])
       .value(metricAccessor)
       .thresholds(12);
 
     return binGenerator(dataset);
-  }, [xScale]);
+  }, [dataset, metricAccessor, xScale]);
 
   const yScale = useMemo(() => {
     const range = { lowest: dimensions.boundedHeight, highest: 0 };
@@ -94,8 +93,8 @@ const BarChart = () => {
       .style('font-size', '12px')
       .style('font-family', 'sans-serif');
 
-    setDatasetMean(mean(dataset, metricAccessor) || 0);
-  }, [bins, dimensions.boundedHeight, groupRef, xScale, yScale]);
+    if (showMean) setDatasetMean(mean(dataset, metricAccessor) || 0);
+  }, [bins, dataset, dimensions.boundedHeight, groupRef, metricAccessor, showMean, xScale, yScale]);
 
   const meanLine = useMemo(() => {
     const [start, end] = [
@@ -110,16 +109,20 @@ const BarChart = () => {
       <Chart {...{ dimensions }} ref={svgRef}>
         <Bounds>
           <g className="bar-chart" ref={groupRef} />
-          <Line
-            className="mean-humidity"
-            plot={meanLine}
-            strokeColor="maroon"
-            strokeWidth="1"
-            dashed="2px 4px"
-          />
-          <Text className="mean-humidity-label" x={xScale(datasetMean)} y={-20}>
-            mean
-          </Text>
+          {showMean && (
+            <>
+              <Line
+                className="mean-humidity"
+                plot={meanLine}
+                strokeColor="maroon"
+                strokeWidth="1"
+                dashed="2px 4px"
+              />
+              <Text className="mean-humidity-label" x={xScale(datasetMean)} y={-20}>
+                mean
+              </Text>
+            </>
+          )}
           <Axis axisType="xAxis" scale={xScale} />
         </Bounds>
       </Chart>
