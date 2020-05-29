@@ -1,4 +1,4 @@
-import React, { FC, useEffect, createRef } from 'react';
+import React, { FC, useEffect, useRef } from 'react';
 import { select } from 'd3-selection';
 import { ScaleTime, ScaleLinear } from 'd3-scale';
 import { axisLeft, axisBottom } from 'd3-axis';
@@ -13,7 +13,7 @@ type Props = {
 };
 
 const Axis: FC<Props> = ({ axisType, scale, label, ticks }) => {
-  const groupRef = createRef<SVGSVGElement>();
+  const groupRef = useRef<SVGSVGElement>(null!);
   const { dimensions } = useChartDimensions();
 
   const axisTypes = {
@@ -23,49 +23,42 @@ const Axis: FC<Props> = ({ axisType, scale, label, ticks }) => {
 
   // add axis, ticks, and labels to component group
   useEffect(() => {
-    if (
-      groupRef !== null &&
-      groupRef !== undefined &&
-      typeof groupRef !== 'function' &&
-      groupRef.current !== null
-    ) {
-      const axis = select(groupRef.current);
-      const generator = axisTypes[axisType](scale);
+    const axis = select(groupRef.current);
+    const generator = axisTypes[axisType](scale);
 
-      if (ticks) generator.ticks(ticks);
+    if (ticks) generator.ticks(ticks);
 
-      axis.call(generator);
+    axis.call(generator);
 
-      if (axisType === 'xAxis') {
-        axis.style('transform', `translateY(${dimensions?.boundedHeight}px)`);
+    if (axisType === 'xAxis') {
+      axis.style('transform', `translateY(${dimensions?.boundedHeight}px)`);
 
-        if (label)
-          axis
-            .append('text')
-            .attr('x', (dimensions?.boundedWidth || 0) / 2)
-            .attr('y', (dimensions?.margin?.bottom || 0) - 10)
-            .attr('fill', 'black')
-            .style('font-size', '1.4em')
-            .html(label);
-      }
-
-      if (axisType === 'yAxis' && label) {
+      if (label)
         axis
           .append('text')
-          .attr('x', -(dimensions?.boundedHeight || 0) / 2)
-          .attr('y', -(dimensions?.margin?.left || 0) + 10)
+          .attr('x', (dimensions?.boundedWidth || 0) / 2)
+          .attr('y', (dimensions?.margin?.bottom || 0) - 10)
           .attr('fill', 'black')
           .style('font-size', '1.4em')
-          .html(label)
-          .style('transform', 'rotate(-90deg)')
-          .style('text-anchor', 'middle');
-      }
-
-      axis
-        .selectAll('text')
-        .attr('role', 'presentation')
-        .attr('aria-hidden', 'true');
+          .html(label);
     }
+
+    if (axisType === 'yAxis' && label) {
+      axis
+        .append('text')
+        .attr('x', -(dimensions?.boundedHeight || 0) / 2)
+        .attr('y', -(dimensions?.margin?.left || 0) + 10)
+        .attr('fill', 'black')
+        .style('font-size', '1.4em')
+        .html(label)
+        .style('transform', 'rotate(-90deg)')
+        .style('text-anchor', 'middle');
+    }
+
+    axis
+      .selectAll('text')
+      .attr('role', 'presentation')
+      .attr('aria-hidden', 'true');
   }, [axisType, axisTypes, dimensions, groupRef, label, scale, ticks]);
 
   return <g className="axis" ref={groupRef}></g>;

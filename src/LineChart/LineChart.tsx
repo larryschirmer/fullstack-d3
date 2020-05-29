@@ -1,4 +1,4 @@
-import React, { createRef, useMemo } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { line } from 'd3-shape';
 
 import { processBounds, makeLinearScale, makeTimeScale } from 'core/d3Helpers';
@@ -15,7 +15,7 @@ export type Dataset = {
 };
 
 const LineChart = () => {
-  const svgRef = createRef<SVGSVGElement>();
+  const svgRef = useRef<SVGSVGElement>(null!);
 
   const dimensions = useMemo(() => {
     return processBounds({

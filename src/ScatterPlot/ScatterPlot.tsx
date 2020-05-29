@@ -1,4 +1,4 @@
-import React, { createRef, useMemo, useEffect } from 'react';
+import React, { useRef, useMemo, useEffect } from 'react';
 import { select } from 'd3-selection';
 
 import { xAccessor, yAccessor, colorAccessor } from './ScatterPlot.helpers';
@@ -11,8 +11,8 @@ import dataset from './hourlyWeather.json';
 import { Wrapper } from './ScatterPlot.styles';
 
 const ScatterPlot = () => {
-  const svgRef = createRef<SVGSVGElement>();
-  const groupRef = createRef<SVGSVGElement>();
+  const svgRef = useRef<SVGSVGElement>(null!);
+  const groupRef = useRef<SVGSVGElement>(null!);
 
   const dimensions = useMemo(() => {
     return processBounds({
@@ -38,9 +38,9 @@ const ScatterPlot = () => {
   }, [dimensions.boundedHeight]);
 
   const colorScale = useMemo(() => {
-    const range = {lowest: 'skyblue', highest: 'darkslategrey'}
-    return makeColorScale<'clouds'>(dataset, colorAccessor, range)
-  },[])
+    const range = { lowest: 'skyblue', highest: 'darkslategrey' };
+    return makeColorScale<'clouds'>(dataset, colorAccessor, range);
+  }, []);
 
   // create circles from dataset
   useEffect(() => {
@@ -52,7 +52,7 @@ const ScatterPlot = () => {
       .attr('cx', (d) => xScale(xAccessor(d)))
       .attr('cy', (d) => yScale(yAccessor(d)))
       .attr('r', 5)
-      .attr('fill', d => colorScale(colorAccessor(d)));
+      .attr('fill', (d) => colorScale(colorAccessor(d)));
   }, [colorScale, groupRef, xScale, yScale]);
 
   return (

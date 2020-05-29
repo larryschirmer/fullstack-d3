@@ -1,4 +1,4 @@
-import React, { createRef, useMemo, useEffect, useState } from 'react';
+import React, { useRef, useMemo, useEffect, useState } from 'react';
 import { histogram, mean } from 'd3-array';
 import { scaleLinear } from 'd3-scale';
 import { max } from 'd3-array';
@@ -30,8 +30,8 @@ type Props<DatasetKey extends string> = {
 const BarChart = <DatasetKey extends string>(props: Props<DatasetKey>) => {
   const { datasetKey, dataset, dimensions, title, showMean = false } = props;
 
-  const svgRef = createRef<SVGSVGElement>();
-  const groupRef = createRef<SVGSVGElement>();
+  const svgRef = useRef<SVGSVGElement>(null!);
+  const groupRef = useRef<SVGSVGElement>(null!);
   const [datasetMean, setDatasetMean] = useState(0);
 
   const metricAccessor = makeAccessor<DatasetKey, number>(datasetKey);

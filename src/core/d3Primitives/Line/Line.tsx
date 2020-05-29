@@ -1,4 +1,4 @@
-import React, { FC, useEffect, createRef } from 'react';
+import React, { FC, useEffect, useRef } from 'react';
 import { select } from 'd3-selection';
 
 type Props = {
@@ -11,24 +11,17 @@ type Props = {
 
 const Line: FC<Props> = (props) => {
   const { plot, strokeColor = 'black', strokeWidth = '1', dashed, className } = props;
-  const pathRef = createRef<SVGPathElement>();
+  const pathRef = useRef<SVGPathElement>(null!);
 
   // plot data and assign line properties
   useEffect(() => {
-    if (
-      pathRef !== null &&
-      pathRef !== undefined &&
-      typeof pathRef !== 'function' &&
-      pathRef.current !== null
-    ) {
-      const line = select(pathRef.current)
-        .attr('d', plot)
-        .attr('fill', 'none')
-        .attr('stroke', strokeColor)
-        .attr('stroke-width', strokeWidth);
+    const line = select(pathRef.current)
+      .attr('d', plot)
+      .attr('fill', 'none')
+      .attr('stroke', strokeColor)
+      .attr('stroke-width', strokeWidth);
 
-      if (dashed) line.attr('stroke-dasharray', dashed);
-    }
+    if (dashed) line.attr('stroke-dasharray', dashed);
   }, [dashed, pathRef, plot, strokeColor, strokeWidth]);
 
   return <path {...{ className }} ref={pathRef} />;
