@@ -10,9 +10,10 @@ type Props = {
   scale: ScaleLinear<number, number> | ScaleTime<number, number>;
   label?: string;
   ticks?: number;
+  transition?: boolean;
 };
 
-const Axis: FC<Props> = ({ axisType, scale, label, ticks }) => {
+const Axis: FC<Props> = ({ axisType, scale, label, ticks, transition }) => {
   const groupRef = useRef<SVGSVGElement>(null!);
   const { dimensions } = useChartDimensions();
 
@@ -28,7 +29,7 @@ const Axis: FC<Props> = ({ axisType, scale, label, ticks }) => {
 
     if (ticks) generator.ticks(ticks);
 
-    axis.call(generator);
+    transition ? axis.transition().call(generator) : axis.call(generator);
 
     if (axisType === 'xAxis') {
       axis.style('transform', `translateY(${dimensions?.boundedHeight}px)`);
@@ -59,7 +60,7 @@ const Axis: FC<Props> = ({ axisType, scale, label, ticks }) => {
       .selectAll('text')
       .attr('role', 'presentation')
       .attr('aria-hidden', 'true');
-  }, [axisType, axisTypes, dimensions, groupRef, label, scale, ticks]);
+  }, [axisType, axisTypes, dimensions, groupRef, label, scale, ticks, transition]);
 
   return <g className="axis" ref={groupRef}></g>;
 };
