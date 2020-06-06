@@ -7,22 +7,31 @@ type Props = {
   strokeWidth?: string;
   dashed?: string;
   className?: string;
+  transition?: boolean;
 };
 
 const Line: FC<Props> = (props) => {
-  const { plot, strokeColor = 'black', strokeWidth = '1', dashed, className } = props;
+  const {
+    plot,
+    strokeColor = 'black',
+    strokeWidth = '1',
+    dashed,
+    className = '',
+    transition,
+  } = props;
   const pathRef = useRef<SVGPathElement>(null!);
 
   // plot data and assign line properties
   useEffect(() => {
     const line = select(pathRef.current)
-      .attr('d', plot)
       .attr('fill', 'none')
       .attr('stroke', strokeColor)
       .attr('stroke-width', strokeWidth);
 
     if (dashed) line.attr('stroke-dasharray', dashed);
-  }, [dashed, pathRef, plot, strokeColor, strokeWidth]);
+    if (transition) line.transition().attr('d', plot);
+    else line.attr('d', plot);
+  }, [dashed, pathRef, plot, strokeColor, strokeWidth, transition]);
 
   return <path {...{ className }} ref={pathRef} />;
 };
