@@ -1,8 +1,10 @@
 import React, { useRef, useMemo, useEffect, useState } from 'react';
-import { histogram, mean } from 'd3-array';
+import { histogram, mean, Bin } from 'd3-array';
 import { scaleLinear } from 'd3-scale';
 import { max } from 'd3-array';
 import { select } from 'd3-selection';
+import 'd3-transition';
+import { transition } from 'd3-transition';
 
 import { makeLinearScale, generateLineSegment, makeAccessor } from 'core/d3Helpers';
 import { Chart, Bounds, Line, Text, Axis } from 'core/d3Primitives';
@@ -65,40 +67,81 @@ const BarChart = <DatasetKey extends string>(props: Props<DatasetKey>) => {
   useEffect(() => {
     const barPadding = 1;
     const labelPadding = 5;
+
+    const updateTransition = transition('root').duration(600);
+    const exitTransition = transition('root').duration(600);
+
     const group = select(groupRef.current)
       .attr('tabindex', '0')
       .attr('role', 'list')
       .attr('aria-label', 'histogram bars');
 
-    const binGroups = group
-      .selectAll('g')
-      .data(bins)
+    const binGroups = group.selectAll('g').data(bins);
+
+    const newBinGroups = binGroups
       .enter()
       .append('g')
       .attr('tabindex', '0')
       .attr('role', 'listitem')
       .attr('aria-label', yAccessor);
 
-    // Bar Rects
-    binGroups
+    const oldBinGroups = binGroups.exit<Bin<DatasetPoint<DatasetKey>, number>>();
+
+    // rects
+    // enter
+    newBinGroups
       .append('rect')
+      .attr('width', (d) => max([0, xScale(d.x1 || 0) - xScale(d.x0 || 0) - barPadding]) || 0)
+      .attr('height', 0)
+      .attr('x', (d) => xScale(d.x0 || 0) + barPadding)
+      .attr('y', dimensions.boundedHeight)
+      .style('fill', 'yellowgreen');
+
+    // update
+    binGroups
+      .select('rect')
+      .transition(updateTransition)
       .attr('x', (d) => xScale(d.x0 || 0) + barPadding / 2)
       .attr('y', (d) => yScale(yAccessor(d)))
       .attr('width', (d) => max([0, xScale(d.x1 || 0) - xScale(d.x0 || 0) - barPadding]) || 0)
       .attr('height', (d) => dimensions.boundedHeight - yScale(yAccessor(d)))
-      .attr('fill', 'cornflowerblue');
+      .style('fill', 'cornflowerblue');
+
+    // delete
+    oldBinGroups
+      .select('rect')
+      .style('fill', 'red')
+      .transition(exitTransition)
+      .attr('y', dimensions.boundedHeight)
+      .attr('height', 0);
 
     // Bar Text
-    binGroups
-      .filter((d) => yAccessor(d) !== 0)
+    // enter
+    newBinGroups
       .append('text')
       .attr('x', (d) => xScale(d.x0 || 0) + (xScale(d.x1 || 0) - xScale(d.x0 || 0)) / 2)
-      .attr('y', (d) => yScale(yAccessor(d)) - labelPadding)
-      .text(yAccessor)
+      .attr('y', () => dimensions.boundedHeight - labelPadding)
+      .text((d) => yAccessor(d) || '')
       .style('text-anchor', 'middle')
       .attr('fill', 'darkgrey')
       .style('font-size', '12px')
       .style('font-family', 'sans-serif');
+
+    // update
+    binGroups
+      .select('text')
+      .transition(updateTransition)
+      .text((d) => yAccessor(d) || '')
+      .attr('y', (d) => yScale(yAccessor(d)) - labelPadding)
+      .attr('x', (d) => xScale(d.x0 || 0) + (xScale(d.x1 || 0) - xScale(d.x0 || 0)) / 2);
+
+    // delete
+    oldBinGroups
+      .select('text')
+      .transition(exitTransition)
+      .attr('y', dimensions.boundedHeight - labelPadding);
+
+    oldBinGroups.transition(exitTransition).remove();
 
     if (showMean) setDatasetMean(mean(dataset, metricAccessor) || 0);
   }, [bins, dataset, dimensions.boundedHeight, groupRef, metricAccessor, showMean, xScale, yScale]);
@@ -120,18 +163,19 @@ const BarChart = <DatasetKey extends string>(props: Props<DatasetKey>) => {
           {showMean && (
             <>
               <Line
+                transition
                 className="mean-humidity"
                 plot={meanLine}
                 strokeColor="maroon"
                 strokeWidth="1"
                 dashed="2px 4px"
               />
-              <Text className="mean-humidity-label" x={xScale(datasetMean)} y={-20}>
+              <Text transition className="mean-humidity-label" x={xScale(datasetMean)} y={-20}>
                 mean
               </Text>
             </>
           )}
-          <Axis axisType="xAxis" scale={xScale} />
+          <Axis transition axisType="xAxis" scale={xScale} />
         </Bounds>
       </Chart>
     </Wrapper>
