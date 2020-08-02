@@ -25,7 +25,7 @@ const YoutubeTutorial = () => {
 
     const rects = selection
       .selectAll('rect')
-      .data(data)
+      .data(data) // for each over the selection, note elements that do not fit
       .attr('width', (d) => 100)
       .attr('height', (d) => d.units)
       .attr('fill', (d) => d.color)
@@ -38,7 +38,6 @@ const YoutubeTutorial = () => {
       .attr('height', (d) => d.units)
       .attr('fill', (d) => d.color)
       .attr('x', (_, i) => i * 100);
-
   }, [selection]);
 
   return (
