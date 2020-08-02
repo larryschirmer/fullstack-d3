@@ -6,14 +6,14 @@ import { axisLeft, axisBottom } from 'd3-axis';
 
 import { Wrapper } from './YoutubeTutorial.styles';
 
-type SelectedSVG = Selection<null, unknown, null, undefined>;
+type SelectedSVG = Selection<SVGSVGElement | null, unknown, null, undefined>;
 
-const data = [
-  { name: 'foo', number: 9000 },
-  { name: 'bar', number: 2340 },
-  { name: 'baz', number: 3463 },
-  { name: 'hoge', number: 7654 },
-  { name: 'piyo', number: 8746 },
+const initialData = [
+  { name: 'foo', units: 9000 },
+  { name: 'bar', units: 2340 },
+  { name: 'baz', units: 3463 },
+  { name: 'hoge', units: 7654 },
+  { name: 'piyo', units: 8746 },
 ];
 
 const dimentions = {
@@ -26,8 +26,9 @@ const dimentions = {
 };
 
 const YoutubeTutorial = () => {
-  const svgRef = useRef(null);
+  const svgRef = useRef<SVGSVGElement | null>(null);
   const [selection, setSelection] = useState<SelectedSVG | null>(null);
+  const [data, setData] = useState(initialData);
 
   const x = scaleBand()
     .domain(data.map(({ name }) => name))
@@ -35,11 +36,13 @@ const YoutubeTutorial = () => {
     .paddingInner(0.05)
     .paddingOuter(0.05);
   const y = scaleLinear()
-    .domain([0, max(data, ({ number }) => number) ?? 0])
-    .range([0, dimentions.chartHeight - dimentions.marginTop]);
+    .domain([0, max(data, ({ units }) => units) ?? 0])
+    .range([dimentions.chartHeight - dimentions.marginTop, 0]);
 
   const xAxis = axisBottom(x);
-  const yAxis = axisLeft(y).ticks(3).tickFormat(d => `${d} units`);
+  const yAxis = axisLeft(y)
+    .ticks(3)
+    .tickFormat((d) => `${d} units`);
 
   useEffect(() => {
     if (!selection) setSelection(select(svgRef.current));
@@ -61,11 +64,12 @@ const YoutubeTutorial = () => {
         .enter()
         .append('rect')
         .attr('width', x.bandwidth)
-        .attr('height', ({ number }) => y(number))
+        .attr('height', ({ units }) => dimentions.chartHeight - dimentions.marginTop - y(units))
         .attr('x', ({ name }) => x(name) ?? null)
+        .attr('y', ({ units }) => y(units))
         .attr('fill', 'orange');
     }
-  }, [selection, x, xAxis, y, yAxis]);
+  }, [data, selection, x, xAxis, y, yAxis]);
 
   return (
     <Wrapper>
