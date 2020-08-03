@@ -1,12 +1,21 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { select, Selection } from 'd3-selection';
-import { scaleLinear, scaleBand } from 'd3-scale';
+import { scaleLinear, scaleBand, ScaleLinear, ScaleBand } from 'd3-scale';
 import { max } from 'd3-array';
 import { axisLeft, axisBottom } from 'd3-axis';
+import randomstring from 'randomstring';
 
 import { Wrapper } from './YoutubeTutorial.styles';
 
-type SelectedSVG = Selection<SVGSVGElement | null, unknown, null, undefined>;
+type SVGSelection = Selection<SVGSVGElement | null, unknown, null, undefined>;
+type SelectedSVG = Selection<SVGSVGElement, unknown, null, undefined>;
+
+type Data = {
+  name: string;
+  units: number;
+}[];
+
+type Scales = { x: ScaleBand<string>; y: ScaleLinear<number, number> };
 
 const initialData = [
   { name: 'foo', units: 9000 },
@@ -25,11 +34,7 @@ const dimentions = {
   marginTop: 20,
 };
 
-const YoutubeTutorial = () => {
-  const svgRef = useRef<SVGSVGElement | null>(null);
-  const [selection, setSelection] = useState<SelectedSVG | null>(null);
-  const [data, setData] = useState(initialData);
-
+const makeScales = (data: Data) => {
   const x = scaleBand()
     .domain(data.map(({ name }) => name))
     .range([0, dimentions.chartWidth])
@@ -39,41 +44,116 @@ const YoutubeTutorial = () => {
     .domain([0, max(data, ({ units }) => units) ?? 0])
     .range([dimentions.chartHeight - dimentions.marginTop, 0]);
 
-  const xAxis = axisBottom(x);
-  const yAxis = axisLeft(y)
-    .ticks(3)
-    .tickFormat((d) => `${d} units`);
+  return { x, y };
+};
 
+const YoutubeTutorial = () => {
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [selection, setSelection] = useState<SVGSelection | null>(null);
+  const [data, setData] = useState(initialData);
+  const [scales, setScales] = useState<Scales>(makeScales(initialData));
+
+  const handleAppendBar = () => {
+    const maxValue = 10_000;
+    const minValue = 1_000;
+    const name = randomstring.generate(10);
+    const units = Math.floor(Math.random() * (maxValue - minValue) + minValue);
+
+    const newDataPoint = { name, units };
+
+    setData((prevData) => [...prevData, newDataPoint]);
+  };
+
+  const handleRemoveBar = () => {
+    if (data.length === 0) return;
+    setData((prevData) => prevData.slice(0, prevData.length - 1));
+  };
+
+  // initialize chart group
   useEffect(() => {
-    if (!selection) setSelection(select(svgRef.current));
-    else {
-      const xAxisGroup = selection
-        .append('g')
-        .attr('transform', `translate(${dimentions.marginLeft}, ${dimentions.chartHeight})`)
-        .call(xAxis);
-      const yAxisGroup = selection
-        .append('g')
-        .attr('transform', `translate(${dimentions.marginLeft}, ${dimentions.marginTop})`)
-        .call(yAxis);
+    const svg = select(svgRef.current);
 
-      selection
-        .append('g')
-        .attr('transform', `translate(${dimentions.marginLeft}, ${dimentions.marginTop})`)
+    // chart group
+    svg
+      .append('g')
+      .attr('class', 'chart')
+      .attr('transform', `translate(${dimentions.marginLeft}, ${dimentions.marginTop})`);
+
+    // x axis group
+    svg
+      .append('g')
+      .attr('class', 'x-axis')
+      .attr('transform', `translate(${dimentions.marginLeft}, ${dimentions.chartHeight})`);
+
+    // y axis group
+    svg
+      .append('g')
+      .attr('class', 'y-axis')
+      .attr('transform', `translate(${dimentions.marginLeft}, ${dimentions.marginTop})`);
+
+    setSelection(svg);
+  }, []);
+
+  // update scales
+  useEffect(() => {
+    setScales(makeScales(data));
+  }, [data]);
+
+  // update chart axis
+  useEffect(() => {
+    if (selection) {
+      const xAxis = axisBottom(scales.x);
+      const yAxis = axisLeft(scales.y)
+        .ticks(3)
+        .tickFormat((d) => `${d} units`);
+
+      const xAxisGroup: SelectedSVG = selection.select('.x-axis');
+      const yAxisGroup: SelectedSVG = selection.select('.y-axis');
+
+      if (!xAxisGroup.empty()) xAxisGroup.call(xAxis);
+      if (!yAxisGroup.empty()) yAxisGroup.call(yAxis);
+    }
+  }, [scales.x, scales.y, selection]);
+
+  // add, update, remove chart elements
+  useEffect(() => {
+    if (selection) {
+      const rects = selection
+        .select('.chart')
         .selectAll('rect')
-        .data(data)
+        .data(data);
+
+      rects
         .enter()
         .append('rect')
-        .attr('width', x.bandwidth)
-        .attr('height', ({ units }) => dimentions.chartHeight - dimentions.marginTop - y(units))
-        .attr('x', ({ name }) => x(name) ?? null)
-        .attr('y', ({ units }) => y(units))
+        .attr('width', scales.x.bandwidth)
+        .attr(
+          'height',
+          ({ units }) => dimentions.chartHeight - dimentions.marginTop - scales.y(units),
+        )
+        .attr('x', ({ name }) => scales.x(name) ?? null)
+        .attr('y', ({ units }) => scales.y(units))
         .attr('fill', 'orange');
+
+      rects
+        .attr('width', scales.x.bandwidth)
+        .attr(
+          'height',
+          ({ units }) => dimentions.chartHeight - dimentions.marginTop - scales.y(units),
+        )
+        .attr('x', ({ name }) => scales.x(name) ?? null)
+        .attr('y', ({ units }) => scales.y(units))
+        .attr('fill', 'orange');
+
+      rects.exit().remove();
     }
-  }, [data, selection, x, xAxis, y, yAxis]);
+  }, [data, scales, selection]);
 
   return (
     <Wrapper>
       <svg ref={svgRef} width={dimentions.width} height={dimentions.height} />
+      <button onClick={handleAppendBar}>Add</button>
+      <button onClick={handleRemoveBar}>Remove</button>
     </Wrapper>
   );
 };
